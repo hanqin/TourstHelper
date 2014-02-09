@@ -8,6 +8,10 @@ buildscript {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 apply plugin: 'android'
 
 android {
@@ -20,10 +24,44 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    sourceSets {
+        instrumentTest.setRoot('src/test')
+    }
+}
+
+sourceSets {
+    unitTest {
+        java.srcDir file('src/test/java')
+        resources.srcDir file('src/test/res')
+    }
+}
+
+configurations {
+    unitTestCompile.extendsFrom runtime
+    unitTestRuntime.extendsFrom unitTestCompile
 }
 
 dependencies {
     compile 'com.android.support:support-v4:19.0.1'
     compile 'com.android.support:appcompat-v7:+'
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+
+    unitTestCompile files("$project.buildDir/classes/release")
+    unitTestCompile 'junit:junit:4.10'
+    unitTestCompile 'org.robolectric:robolectric:2.1.+'
+    unitTestCompile 'com.squareup:fest-android:1.0.+'
+    unitTestCompile 'com.google.android:android:4.1.1.4'
+
+    instrumentTestCompile files("$project.buildDir/classes/release")
+    instrumentTestCompile 'junit:junit:4.10'
+    instrumentTestCompile 'org.robolectric:robolectric:2.1.+'
+    instrumentTestCompile 'com.squareup:fest-android:1.0.+'
 }
+
+task unitTest(type: Test, dependsOn: assemble) {
+    testClassesDir = project.sourceSets.unitTest.output.classesDir
+    classpath = project.sourceSets.unitTest.runtimeClasspath
+}
+check.dependsOn unitTest
+
