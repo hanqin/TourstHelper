@@ -4,5 +4,6 @@
     <string name="app_name">TouristHelper</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="api_key">AIzaSyAEroKv6w4aFHPLpwbTE-VhJDfSrocHbQs</string>
 
 </resources>

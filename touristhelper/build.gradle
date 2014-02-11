@@ -45,6 +45,7 @@ configurations {
 dependencies {
     compile 'com.android.support:support-v4:19.0.1'
     compile 'com.android.support:appcompat-v7:+'
+    compile 'com.google.android.gms:play-services:4.1.32'
     compile fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 
     unitTestCompile files("$project.buildDir/classes/release")
