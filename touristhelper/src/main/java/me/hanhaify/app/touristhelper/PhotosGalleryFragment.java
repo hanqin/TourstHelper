@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +52,9 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onLoadFinished(Loader<AsyncResourceLoader.Result<ContactsPhotos>> resultLoader, AsyncResourceLoader.Result<ContactsPhotos> contactsPhotosResult) {
         if (!contactsPhotosResult.success) {
-            Toast.makeText(getActivity(), getActivity().getString(R.string.loading_error) + contactsPhotosResult.errorMessage, Toast.LENGTH_LONG);
+            String warningMessage = getActivity().getString(R.string.loading_error) + contactsPhotosResult.errorMessage;
+            Log.w(getTag(), warningMessage);
+            Toast.makeText(getActivity(), warningMessage, Toast.LENGTH_LONG).show();
             return;
         }
         adapter.setData(contactsPhotosResult.data);
@@ -109,8 +112,6 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-
-
             ImageView imageView;
             if (convertView == null) {
                 imageView = new ImageView(parent.getContext());
@@ -127,6 +128,7 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
             Picasso.with(parent.getContext()).load(imageUrl)
                     .placeholder(R.drawable.loading)
                     .into(imageView);
+
             return imageView;
         }
 
