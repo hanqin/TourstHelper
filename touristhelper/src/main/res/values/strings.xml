@@ -7,5 +7,7 @@
     <string name="api_key">AIzaSyAEroKv6w4aFHPLpwbTE-VhJDfSrocHbQs</string>
     <string name="token_flickr">a13036a2a3a82d280b979c7d5e52d2af</string>
     <string name="loading_error">Please try again later, error message: </string>
+    <string name="marker_title">Routes</string>
+    <string name="marker_info">Beginning at this point</string>
 
 </resources>

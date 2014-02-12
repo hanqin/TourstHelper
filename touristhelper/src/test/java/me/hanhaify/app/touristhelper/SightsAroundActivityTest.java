@@ -9,6 +9,5 @@ public class SightsAroundActivityTest {
 
     @Test
     public void should_find_sights_around_me() {
-
     }
 }

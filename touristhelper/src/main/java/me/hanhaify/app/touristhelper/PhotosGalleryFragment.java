@@ -87,13 +87,22 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
         public void onPhotosCleared();
     }
 
+    public static interface OnPhotoSelectedListener {
+        void selectedPhoto(Photo photo);
+    }
+
+    public void setOnPhotoSelectedListener(OnPhotoSelectedListener onPhotoSelectedListener) {
+        adapter.setOnPhotoSelectedListener(onPhotoSelectedListener);
+    }
+
     public void setOnPhotosLoadedListener(OnPhotosChangedListener onPhotosLoadedListener) {
         this.onPhotosLoadedListener = onPhotosLoadedListener;
     }
 
     private static class PhotosGalleryAdapter extends BaseAdapter {
-
         private List<Photo> photos = new ArrayList<Photo>();
+
+        private OnPhotoSelectedListener onPhotoSelectedListener = new EmptyOnPhotoSelectedListener();
 
         @Override
         public int getCount() {
@@ -121,7 +130,7 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
                 imageView = ((ImageView) convertView);
             }
 
-            Photo photo = getItem(position);
+            final Photo photo = getItem(position);
             String imageUrl = FlickrConstants.generateLargeSquarePhotoUrl(photo.getFarm(),
                     photo.getServer(),
                     photo.getId(), photo.getSecret());
@@ -129,6 +138,12 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
                     .placeholder(R.drawable.loading)
                     .into(imageView);
 
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onPhotoSelectedListener.selectedPhoto(photo);
+                }
+            });
             return imageView;
         }
 
@@ -137,10 +152,19 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
             photos.addAll(data.getPhotos().getPhotoList());
             notifyDataSetChanged();
         }
-
         public void clear() {
             photos.clear();
             notifyDataSetChanged();
+        }
+
+        public void setOnPhotoSelectedListener(OnPhotoSelectedListener onPhotoSelectedListener) {
+            this.onPhotoSelectedListener = onPhotoSelectedListener;
+        }
+
+        private static class EmptyOnPhotoSelectedListener implements OnPhotoSelectedListener {
+            @Override
+            public void selectedPhoto(Photo photo) {
+            }
         }
     }
 
@@ -149,14 +173,14 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
         float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpValue, r.getDisplayMetrics());
         return (int) px;
     }
-
     private static class DoNothingOnPhotosChanged implements OnPhotosChangedListener {
+
         @Override
         public void onPhotosLoaded(ContactsPhotos contactsPhotos) {
         }
-
         @Override
         public void onPhotosCleared() {
         }
+
     }
 }

@@ -1,5 +1,6 @@
 package me.hanhaify.app.touristhelper;
 
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -13,14 +14,20 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.wuman.oauth.samples.flickr.api.model.ContactsPhotos;
 import com.wuman.oauth.samples.flickr.api.model.Photo;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SightsAroundActivity extends FragmentActivity {
 
+    private Map<LatLng, Marker> markers = new HashMap<LatLng, Marker>();
     private GoogleMap googleMap;
     private LocationClient locationClient;
     private PhotosGalleryFragment photoGallery;
@@ -62,8 +69,14 @@ public class SightsAroundActivity extends FragmentActivity {
                 List<Photo> photoList = contactsPhotos.getPhotos().getPhotoList();
                 for (Photo photo : photoList) {
                     LatLng markerPosition = new LatLng(photo.getLatitude(), photo.getLongitude());
-                    MarkerOptions position = new MarkerOptions().position(markerPosition);
-                    googleMap.addMarker(position);
+                    if (markers.containsKey(markerPosition)) continue;
+
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(markerPosition)
+                            .title(getString(R.string.marker_title))
+                            .snippet(getString(R.string.marker_info));
+                    Marker marker = googleMap.addMarker(markerOptions);
+                    markers.put(markerPosition, marker);
                 }
             }
 
@@ -72,16 +85,59 @@ public class SightsAroundActivity extends FragmentActivity {
                 googleMap.clear();
             }
         });
+        photoGallery.setOnPhotoSelectedListener(new PhotosGalleryFragment.OnPhotoSelectedListener() {
+            @Override
+            public void selectedPhoto(Photo photo) {
+                LatLng markerPosition = new LatLng(photo.getLatitude(), photo.getLongitude());
+                Marker marker = markers.get(markerPosition);
+
+                marker.showInfoWindow();
+            }
+        });
     }
 
     private void initGoogleMap() {
         SupportMapFragment mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
         googleMap = mapFragment.getMap();
         googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setCompassEnabled(false);
-        googleMap.getUiSettings().setZoomControlsEnabled(false);
         googleMap.getUiSettings().setZoomGesturesEnabled(true);
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        googleMap.getUiSettings().setCompassEnabled(false);
+        googleMap.getUiSettings().setZoomControlsEnabled(false);
+        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                List<LatLng> route = new ArrayList<LatLng>();
+
+                LatLng start = marker.getPosition();
+                List<LatLng> positions = new ArrayList<LatLng>();
+                positions.addAll(markers.keySet());
+
+                while (!positions.isEmpty()) {
+                    LatLng lastPosition = findNearestPosition(start, positions);
+                    positions.remove(lastPosition);
+                    start = lastPosition;
+                    route.add(lastPosition);
+                }
+
+                googleMap.addPolyline(new PolylineOptions().addAll(route).add(marker.getPosition()).color(Color.RED).width(5));
+            }
+
+            private LatLng findNearestPosition(LatLng start, List<LatLng> positions) {
+                float distance = Float.MAX_VALUE;
+                LatLng lastPosition = null;
+                for (LatLng latLng : positions) {
+                    float[] results = new float[3];
+                    Location.distanceBetween(start.latitude, start.longitude, latLng.latitude, latLng.longitude, results);
+                    if (distance > results[0]) {
+                        distance = results[0];
+                        lastPosition = latLng;
+                    }
+                }
+                return lastPosition;
+            }
+
+        });
     }
 
     private void initLocationClient() {
