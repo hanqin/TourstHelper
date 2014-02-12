@@ -12,7 +12,7 @@
             android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
     <fragment
-            android:id="@+id/photo_list"
+            android:id="@+id/photo_gallery"
             android:layout_width="match_parent"
             android:layout_height="112dp"
             android:layout_gravity="bottom"

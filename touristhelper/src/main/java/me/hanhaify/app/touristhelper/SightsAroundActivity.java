@@ -16,9 +16,9 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class SightsAroundActivity extends FragmentActivity {
 
-    public static final int DEFAULT_ZOOM_LEVEL = 16;
     private GoogleMap googleMap;
     private LocationClient locationClient;
+    private PhotosGalleryFragment photoGallery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +40,7 @@ public class SightsAroundActivity extends FragmentActivity {
         super.onStart();
         initLocationClient();
         locationClient.connect();
+        photoGallery = (PhotosGalleryFragment) getSupportFragmentManager().findFragmentById(R.id.photo_gallery);
     }
 
     @Override
@@ -69,8 +70,10 @@ public class SightsAroundActivity extends FragmentActivity {
             Location lastLocation = locationClient.getLastLocation();
 
             LatLng target = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
-            CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(target, DEFAULT_ZOOM_LEVEL);
+            CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(target, Constants.DEFAULT_ZOOM_LEVEL);
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+            photoGallery.startLoading(lastLocation.getLatitude(), lastLocation.getLongitude());
         }
 
         @Override

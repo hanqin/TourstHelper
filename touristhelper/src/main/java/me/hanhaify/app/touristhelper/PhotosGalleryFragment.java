@@ -2,46 +2,116 @@ package me.hanhaify.app.touristhelper;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
+import com.squareup.picasso.Picasso;
+import com.wuman.oauth.samples.AsyncResourceLoader;
+import com.wuman.oauth.samples.flickr.FlickrConstants;
+import com.wuman.oauth.samples.flickr.api.model.ContactsPhotos;
+import com.wuman.oauth.samples.flickr.api.model.Photo;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import it.sephiroth.android.library.widget.HListView;
+import me.hanhaify.app.touristhelper.flicker.PhotosLoader;
 
-public class PhotosGalleryFragment extends Fragment {
+public class PhotosGalleryFragment extends Fragment implements LoaderManager.LoaderCallbacks<AsyncResourceLoader.Result<ContactsPhotos>> {
 
+    public static final int DEFAULT_LOADER_ID = 0;
     private HListView gallery;
+    private PhotosGalleryAdapter adapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_photos_gallery, container, false);
         gallery = (HListView) view.findViewById(R.id.horizontal_list_view);
-        gallery.setAdapter(new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return 4;
-            }
-
-            @Override
-            public Object getItem(int position) {
-                return null;
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return position;
-            }
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                ImageView imageView = new ImageView(parent.getContext());
-                imageView.setImageDrawable(parent.getResources().getDrawable(R.drawable.demo_image));
-                imageView.setLayoutParams(new HListView.LayoutParams(HListView.LayoutParams.WRAP_CONTENT, HListView.LayoutParams.WRAP_CONTENT));
-                return imageView;
-            }
-        });
+        adapter = new PhotosGalleryAdapter();
+        gallery.setAdapter(adapter);
         return view;
+    }
+
+    @Override
+    public Loader<AsyncResourceLoader.Result<ContactsPhotos>> onCreateLoader(int id, Bundle bundle) {
+        return new PhotosLoader(getActivity(), bundle);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<AsyncResourceLoader.Result<ContactsPhotos>> resultLoader, AsyncResourceLoader.Result<ContactsPhotos> contactsPhotosResult) {
+        adapter.setData(contactsPhotosResult.data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<AsyncResourceLoader.Result<ContactsPhotos>> resultLoader) {
+        adapter.clear();
+    }
+
+    public void startLoading(double lat, double lon) {
+        Bundle bundle = new Bundle();
+
+        bundle.putDouble("lat", lat);
+        bundle.putDouble("lon", lon);
+
+        Loader<Object> loader = getLoaderManager().getLoader(DEFAULT_LOADER_ID);
+        if (loader == null) {
+            getLoaderManager().initLoader(DEFAULT_LOADER_ID, bundle, this);
+        } else {
+            getLoaderManager().restartLoader(DEFAULT_LOADER_ID, bundle, this);
+        }
+    }
+
+    private static class PhotosGalleryAdapter extends BaseAdapter {
+
+        private List<Photo> photos = new ArrayList<Photo>();
+
+        @Override
+        public int getCount() {
+            return photos.size();
+        }
+
+        @Override
+        public Photo getItem(int position) {
+            return photos.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ImageView imageView;
+            if (convertView == null) {
+                imageView = new ImageView(parent.getContext());
+                imageView.setLayoutParams(new HListView.LayoutParams(HListView.LayoutParams.WRAP_CONTENT, HListView.LayoutParams.WRAP_CONTENT));
+            } else {
+                imageView = ((ImageView) convertView);
+            }
+
+            Photo photo = getItem(position);
+            String imageUrl = FlickrConstants.generateLargeSquarePhotoUrl(photo.getFarm(),
+                    photo.getServer(),
+                    photo.getId(), photo.getSecret());
+            Picasso.with(parent.getContext()).load(imageUrl).into(imageView);
+            return imageView;
+        }
+
+        public void setData(ContactsPhotos data) {
+            if (data == null) return;
+            photos.addAll(data.getPhotos().getPhotoList());
+            notifyDataSetChanged();
+        }
+
+        public void clear() {
+            photos.clear();
+            notifyDataSetChanged();
+        }
     }
 }
