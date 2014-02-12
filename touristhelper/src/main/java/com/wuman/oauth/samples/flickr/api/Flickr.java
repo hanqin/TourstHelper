@@ -66,6 +66,26 @@ public class Flickr extends AbstractGoogleJsonClient {
             @Key("page")
             private Integer page;
 
+            @Key("geo_context")
+            private Integer geoContext;
+
+            @Key("has_geo")
+            private Integer hasGeo;
+
+            public Integer getHasGeo() {
+                return hasGeo;
+            }
+
+            public Search setHasGeo(Integer hasGeo) {
+                this.hasGeo = hasGeo;
+                return this;
+            }
+
+            public Search setGeoContext(Integer geoContext) {
+                this.geoContext = geoContext;
+                return this;
+            }
+
             public Search setLat(double lat) {
                 this.lat = lat;
                 return this;
@@ -94,6 +114,10 @@ public class Flickr extends AbstractGoogleJsonClient {
             public Search setPage(int page) {
                 this.page = page;
                 return this;
+            }
+
+            public Integer getGeoContext() {
+                return geoContext;
             }
 
             public Double getLat() {

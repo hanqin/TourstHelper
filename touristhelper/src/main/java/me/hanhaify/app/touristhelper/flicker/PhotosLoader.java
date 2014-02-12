@@ -52,9 +52,11 @@ public class PhotosLoader extends AsyncResourceLoader<ContactsPhotos> {
 
         Flickr.Photos.Search search = flickr.photos().search();
         search = search.setExtras("geo")
+                .setHasGeo(1)
                 .setAccuracy(Constants.DEFAULT_ZOOM_LEVEL)
                 .setLat(bundle.getDouble(Constants.BUNDLE_KEY_LAT))
                 .setLon(bundle.getDouble(Constants.BUNDLE_KEY_LON));
+
         LOGGER.log(Level.INFO, search.toString());
         ContactsPhotos photos = search.execute();
         return photos;
