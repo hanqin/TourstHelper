@@ -16,7 +16,10 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.clustering.ClusterItem;
+import com.google.maps.android.clustering.ClusterManager;
 import com.wuman.oauth.samples.flickr.api.model.ContactsPhotos;
 import com.wuman.oauth.samples.flickr.api.model.Photo;
 
@@ -31,6 +34,8 @@ public class SightsAroundActivity extends FragmentActivity {
     private GoogleMap googleMap;
     private LocationClient locationClient;
     private PhotosGalleryFragment photoGallery;
+    private Polyline existingPolyline;
+    private ClusterManager<DefaultClusterItem> clusterManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +73,8 @@ public class SightsAroundActivity extends FragmentActivity {
             public void onPhotosLoaded(ContactsPhotos contactsPhotos) {
                 List<Photo> photoList = contactsPhotos.getPhotos().getPhotoList();
                 for (Photo photo : photoList) {
-                    LatLng markerPosition = new LatLng(photo.getLatitude(), photo.getLongitude());
+                    DefaultClusterItem clusterItem = new DefaultClusterItem(photo);
+                    LatLng markerPosition = clusterItem.getPosition();
                     if (markers.containsKey(markerPosition)) continue;
 
                     MarkerOptions markerOptions = new MarkerOptions()
@@ -76,6 +82,7 @@ public class SightsAroundActivity extends FragmentActivity {
                             .title(getString(R.string.marker_title))
                             .snippet(getString(R.string.marker_info));
                     Marker marker = googleMap.addMarker(markerOptions);
+                    clusterManager.addItem(clusterItem);
                     markers.put(markerPosition, marker);
                 }
             }
@@ -83,6 +90,8 @@ public class SightsAroundActivity extends FragmentActivity {
             @Override
             public void onPhotosCleared() {
                 googleMap.clear();
+                markers.clear();
+                clusterManager.clearItems();
             }
         });
         photoGallery.setOnPhotoSelectedListener(new PhotosGalleryFragment.OnPhotoSelectedListener() {
@@ -120,7 +129,16 @@ public class SightsAroundActivity extends FragmentActivity {
                     route.add(lastPosition);
                 }
 
-                googleMap.addPolyline(new PolylineOptions().addAll(route).add(marker.getPosition()).color(Color.RED).width(5));
+                if (existingPolyline != null) {
+                    existingPolyline.remove();
+                    existingPolyline = null;
+                }
+                existingPolyline = googleMap.addPolyline(new PolylineOptions()
+                        .addAll(route)
+                        .add(marker.getPosition())
+                        .geodesic(true)
+                        .color(Color.RED)
+                        .width(5));
             }
 
             private LatLng findNearestPosition(LatLng start, List<LatLng> positions) {
@@ -138,6 +156,23 @@ public class SightsAroundActivity extends FragmentActivity {
             }
 
         });
+
+        clusterManager = new ClusterManager<DefaultClusterItem>(this, googleMap);
+        googleMap.setOnCameraChangeListener(clusterManager);
+    }
+
+    public static class DefaultClusterItem implements ClusterItem {
+
+        public Photo photo;
+
+        public DefaultClusterItem(Photo photo) {
+            this.photo = photo;
+        }
+
+        @Override
+        public LatLng getPosition() {
+            return new LatLng(photo.getLatitude(), photo.getLongitude());
+        }
     }
 
     private void initLocationClient() {
