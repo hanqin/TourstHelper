@@ -1,10 +1,12 @@
 package me.hanhaify.app.touristhelper;
 
+import android.content.Context;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +80,7 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
 
     public static interface OnPhotosChangedListener {
         public void onPhotosLoaded(ContactsPhotos contactsPhotos);
+
         public void onPhotosCleared();
     }
 
@@ -106,10 +109,13 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+
+
             ImageView imageView;
             if (convertView == null) {
                 imageView = new ImageView(parent.getContext());
-                imageView.setLayoutParams(new HListView.LayoutParams(HListView.LayoutParams.WRAP_CONTENT, HListView.LayoutParams.WRAP_CONTENT));
+                int value = dpToPx(parent.getContext(), 100);
+                imageView.setLayoutParams(new HListView.LayoutParams(value, value));
             } else {
                 imageView = ((ImageView) convertView);
             }
@@ -134,6 +140,12 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
             photos.clear();
             notifyDataSetChanged();
         }
+    }
+
+    private static int dpToPx(Context context, int dpValue) {
+        Resources r = context.getResources();
+        float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpValue, r.getDisplayMetrics());
+        return (int) px;
     }
 
     private static class DoNothingOnPhotosChanged implements OnPhotosChangedListener {
