@@ -4,11 +4,13 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import com.wuman.oauth.samples.AsyncResourceLoader;
@@ -27,12 +29,14 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
     public static final int DEFAULT_LOADER_ID = 0;
     private HListView gallery;
     private PhotosGalleryAdapter adapter;
+    private OnPhotosChangedListener onPhotosLoadedListener = new DoNothingOnPhotosChanged();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_photos_gallery, container, false);
         gallery = (HListView) view.findViewById(R.id.horizontal_list_view);
         adapter = new PhotosGalleryAdapter();
+        gallery.setDividerWidth(15);
         gallery.setAdapter(adapter);
         return view;
     }
@@ -44,12 +48,18 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<AsyncResourceLoader.Result<ContactsPhotos>> resultLoader, AsyncResourceLoader.Result<ContactsPhotos> contactsPhotosResult) {
+        if (!contactsPhotosResult.success) {
+            Toast.makeText(getActivity(), getActivity().getString(R.string.loading_error) + contactsPhotosResult.errorMessage, Toast.LENGTH_LONG);
+            return;
+        }
         adapter.setData(contactsPhotosResult.data);
+        onPhotosLoadedListener.onPhotosLoaded(contactsPhotosResult.data);
     }
 
     @Override
     public void onLoaderReset(Loader<AsyncResourceLoader.Result<ContactsPhotos>> resultLoader) {
         adapter.clear();
+        onPhotosLoadedListener.onPhotosCleared();
     }
 
     public void startLoading(double lat, double lon) {
@@ -64,6 +74,15 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
         } else {
             getLoaderManager().restartLoader(DEFAULT_LOADER_ID, bundle, this);
         }
+    }
+
+    public static interface OnPhotosChangedListener {
+        public void onPhotosLoaded(ContactsPhotos contactsPhotos);
+        public void onPhotosCleared();
+    }
+
+    public void setOnPhotosLoadedListener(OnPhotosChangedListener onPhotosLoadedListener) {
+        this.onPhotosLoadedListener = onPhotosLoadedListener;
     }
 
     private static class PhotosGalleryAdapter extends BaseAdapter {
@@ -99,7 +118,9 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
             String imageUrl = FlickrConstants.generateLargeSquarePhotoUrl(photo.getFarm(),
                     photo.getServer(),
                     photo.getId(), photo.getSecret());
-            Picasso.with(parent.getContext()).load(imageUrl).into(imageView);
+            Picasso.with(parent.getContext()).load(imageUrl)
+                    .placeholder(R.drawable.loading)
+                    .into(imageView);
             return imageView;
         }
 
@@ -112,6 +133,16 @@ public class PhotosGalleryFragment extends Fragment implements LoaderManager.Loa
         public void clear() {
             photos.clear();
             notifyDataSetChanged();
+        }
+    }
+
+    private static class DoNothingOnPhotosChanged implements OnPhotosChangedListener {
+        @Override
+        public void onPhotosLoaded(ContactsPhotos contactsPhotos) {
+        }
+
+        @Override
+        public void onPhotosCleared() {
         }
     }
 }

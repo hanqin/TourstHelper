@@ -12,5 +12,6 @@
             android:id="@+id/horizontal_list_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:background="#11000000"/>
 </FrameLayout>

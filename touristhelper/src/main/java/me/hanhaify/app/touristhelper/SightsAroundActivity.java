@@ -13,6 +13,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.wuman.oauth.samples.flickr.api.model.ContactsPhotos;
+import com.wuman.oauth.samples.flickr.api.model.Photo;
+
+import java.util.List;
 
 public class SightsAroundActivity extends FragmentActivity {
 
@@ -40,7 +45,7 @@ public class SightsAroundActivity extends FragmentActivity {
         super.onStart();
         initLocationClient();
         locationClient.connect();
-        photoGallery = (PhotosGalleryFragment) getSupportFragmentManager().findFragmentById(R.id.photo_gallery);
+        initPhotoGallery();
     }
 
     @Override
@@ -49,13 +54,33 @@ public class SightsAroundActivity extends FragmentActivity {
         locationClient.disconnect();
     }
 
+    private void initPhotoGallery() {
+        photoGallery = (PhotosGalleryFragment) getSupportFragmentManager().findFragmentById(R.id.photo_gallery);
+        photoGallery.setOnPhotosLoadedListener(new PhotosGalleryFragment.OnPhotosChangedListener() {
+            @Override
+            public void onPhotosLoaded(ContactsPhotos contactsPhotos) {
+                List<Photo> photoList = contactsPhotos.getPhotos().getPhotoList();
+                for (Photo photo : photoList) {
+                    LatLng markerPosition = new LatLng(photo.getLatitude(), photo.getLongitude());
+                    MarkerOptions position = new MarkerOptions().position(markerPosition);
+                    googleMap.addMarker(position);
+                }
+            }
+
+            @Override
+            public void onPhotosCleared() {
+                googleMap.clear();
+            }
+        });
+    }
+
     private void initGoogleMap() {
         SupportMapFragment mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
         googleMap = mapFragment.getMap();
         googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setCompassEnabled(true);
+        googleMap.getUiSettings().setCompassEnabled(false);
         googleMap.getUiSettings().setZoomControlsEnabled(false);
-        googleMap.getUiSettings().setZoomGesturesEnabled(false);
+        googleMap.getUiSettings().setZoomGesturesEnabled(true);
         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
