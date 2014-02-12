@@ -14,5 +14,9 @@ cd TouristHelper
 Known issues
 --------
 * Tested on Samsung Galaxy S2.
-* Images loaded are not only sights, currently there is no api to filter sights only images.
-* The icon is from google images search.
+* You might see photos of different topics, not only sights to see, as flickr
+  doesn't support such filter at the moment.
+* Yahoo has been calling for talents
+  to attend its "image classification challenge".
+  http://acmmm13.org/submissions/call-for-multimedia-grand-challenge-solutions/yahoo-large-scale-flickr-tag-image-classification-challenge/
+* The app icon is from google images search.
