@@ -23,10 +23,11 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.wuman.oauth.samples.flickr.api.model.ContactsPhotos;
 import com.wuman.oauth.samples.flickr.api.model.Photo;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import me.hanhaify.app.touristhelper.routes.GreedyRoutesFinder;
 
 public class SightsAroundActivity extends FragmentActivity {
 
@@ -116,18 +117,7 @@ public class SightsAroundActivity extends FragmentActivity {
         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                List<LatLng> route = new ArrayList<LatLng>();
-
-                LatLng start = marker.getPosition();
-                List<LatLng> positions = new ArrayList<LatLng>();
-                positions.addAll(markers.keySet());
-
-                while (!positions.isEmpty()) {
-                    LatLng lastPosition = findNearestPosition(start, positions);
-                    positions.remove(lastPosition);
-                    start = lastPosition;
-                    route.add(lastPosition);
-                }
+                List<LatLng> route = new GreedyRoutesFinder().findRoute(markers.keySet(), marker.getPosition());
 
                 if (existingPolyline != null) {
                     existingPolyline.remove();
@@ -135,26 +125,10 @@ public class SightsAroundActivity extends FragmentActivity {
                 }
                 existingPolyline = googleMap.addPolyline(new PolylineOptions()
                         .addAll(route)
-                        .add(marker.getPosition())
                         .geodesic(true)
                         .color(Color.RED)
                         .width(5));
             }
-
-            private LatLng findNearestPosition(LatLng start, List<LatLng> positions) {
-                float distance = Float.MAX_VALUE;
-                LatLng lastPosition = null;
-                for (LatLng latLng : positions) {
-                    float[] results = new float[3];
-                    Location.distanceBetween(start.latitude, start.longitude, latLng.latitude, latLng.longitude, results);
-                    if (distance > results[0]) {
-                        distance = results[0];
-                        lastPosition = latLng;
-                    }
-                }
-                return lastPosition;
-            }
-
         });
 
         clusterManager = new ClusterManager<DefaultClusterItem>(this, googleMap);
