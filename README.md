@@ -2,7 +2,7 @@ TouristHelper
 =========
 
 ![](images/map_gallery.png)
-![](images/routes_added.png)
+![](images/routes_with_2_opt.png)
 
 Usage
 --------
@@ -10,6 +10,15 @@ Usage
 cd TouristHelper
 ./gradlew iD
 ```
+Changes
+--------
+Used greedy 2-opt algorithm to improve the route result,
+The new route is about 30% shorter than the previous one calculated by greedy
+algorithm.
+However, greedy 2-opt requires to calculate total distance of the route very
+frequently, and the performance is much worse than before and than expected.
+The main reason is the Location.distanceBetween method are been called too many times.
+I am working on improving the performance.
 
 Known issues
 --------

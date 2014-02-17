@@ -120,7 +120,7 @@ public class SightsAroundActivity extends FragmentActivity {
             public void onInfoWindowClick(Marker marker) {
                 List<LatLng> route;
 
-                route = new GreedyRoutesFinder().findRoute(markers.keySet(), marker.getPosition());
+                route = new Greedy2OptRoutesFinder().findRoute(markers.keySet(), marker.getPosition());
 
                 if (existingPolyline != null) {
                     existingPolyline.remove();
