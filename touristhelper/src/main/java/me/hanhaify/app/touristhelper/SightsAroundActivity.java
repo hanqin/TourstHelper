@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.hanhaify.app.touristhelper.routes.Greedy2OptRoutesFinder;
 import me.hanhaify.app.touristhelper.routes.GreedyRoutesFinder;
 
 public class SightsAroundActivity extends FragmentActivity {
@@ -117,7 +118,9 @@ public class SightsAroundActivity extends FragmentActivity {
         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                List<LatLng> route = new GreedyRoutesFinder().findRoute(markers.keySet(), marker.getPosition());
+                List<LatLng> route;
+
+                route = new GreedyRoutesFinder().findRoute(markers.keySet(), marker.getPosition());
 
                 if (existingPolyline != null) {
                     existingPolyline.remove();
